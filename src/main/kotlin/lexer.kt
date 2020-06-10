@@ -54,11 +54,13 @@ class Lexer(input: String) {
     private val chars = Peekable(input.iterator())
     private var lookahead: Token? = null
 
+    private val currentPositon = Span.SpanPosition(0, 0)
+
     fun peek(): Token = next().also { lookahead = it }
     fun next(): Token {
         lookahead?.let { lookahead = null; return it }
         consumeWhitespace()
-        val c = chars.next() ?: return Token.END_OF_FILE
+        val c = nextChar() ?: return Token.END_OF_FILE
         return when(c) {
             '(' -> Token.LEFT_PAREN
             ')' -> Token.RIGHT_PAREN
@@ -68,9 +70,9 @@ class Lexer(input: String) {
             '+' -> Token.OPERATOR("+")
             '*' -> Token.OPERATOR("*")
             '\\' -> Token.LAMBDA
-            '/' -> if(chars.next()=='/') comment() else throw Exception("Expected seccond '/")
-            '-' -> if(chars.next() == '>') Token.RIGHT_ARROW else Token.OPERATOR("-")
-            '=' -> if(chars.next() == '=') Token.OPERATOR("==") else Token.EQUALS
+            '/' -> if(nextChar()=='/') comment() else throw Exception("Expected seccond '/")
+            '-' -> if(nextChar() == '>') Token.RIGHT_ARROW else Token.OPERATOR("-")
+            '=' -> if(nextChar() == '=') Token.OPERATOR("==") else Token.EQUALS
             else -> when {
                 c.isJavaIdentifierStart() -> ident(c)
                 c.isDigit() -> number(c)
@@ -81,21 +83,35 @@ class Lexer(input: String) {
 
     private fun number(c: Char): Token {
         var res = c.toString()
-        while (chars.peek()?.isDigit() == true) res += chars.next()
+        while (chars.peek()?.isDigit() == true) res += nextChar()
         return Token.NUMBER(res.toInt())
     }
     private fun comment():Token {
         var c = chars.peek()
         while (true){
             if (c == '\n') break
-            c = chars.next()
+            c = nextChar()
         }
         return next()
     }
 
+    private fun nextChar() : Char?{
+        val nextChar = chars.next()
+
+        if (nextChar == '\n') {
+            currentPositon.column = 0
+            currentPositon.line += 1
+        }
+        else {
+            currentPositon.column += 1
+        }
+        
+        return nextChar
+    }
+
     private fun ident(c: Char): Token {
         var res = c.toString()
-        while (chars.peek()?.isJavaIdentifierPart() == true) res += chars.next()
+        while (chars.peek()?.isJavaIdentifierPart() == true) res += nextChar()
         return when(res) {
             "if" -> Token.IF
             "then" -> Token.THEN
@@ -110,7 +126,7 @@ class Lexer(input: String) {
     }
 
     private fun consumeWhitespace() {
-        while (chars.peek()?.isWhitespace() == true) chars.next()
+        while (chars.peek()?.isWhitespace() == true) nextChar()
     }
 }
 
