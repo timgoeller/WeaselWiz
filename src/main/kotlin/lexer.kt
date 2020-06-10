@@ -2,6 +2,8 @@ data class Span(val start: SpanPosition, val end: SpanPosition) {
     data class SpanPosition (val line: Int, val column: Int)
 }
 
+val DUMMY_SPAN: Span = Span(Span.SpanPosition(-1, -1), Span.SpanPosition(-1,-1))
+
 sealed class Token {
     override fun toString(): String = javaClass.simpleName
     // Keywords
