@@ -1,3 +1,7 @@
+data class Span(val start: SpanPosition, val end: SpanPosition) {
+    data class SpanPosition (val line: Int, val column: Int)
+}
+
 sealed class Token {
     override fun toString(): String = javaClass.simpleName
     // Keywords
