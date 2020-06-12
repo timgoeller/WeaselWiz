@@ -1,4 +1,4 @@
-data class Span(val start: SpanPosition, val end: SpanPosition) {
+data class Span(var start: SpanPosition, var end: SpanPosition) {
     data class SpanPosition (var line: Int, var column: Int)
 }
 
@@ -54,14 +54,17 @@ class Lexer(input: String) {
     private val chars = Peekable(input.iterator())
     private var lookahead: Token? = null
 
-    private val currentPositon = Span.SpanPosition(0, 0)
+    private val currentPositon = Span.SpanPosition(0, -1)
 
     fun peek(): Token = next().also { lookahead = it }
     fun next(): Token {
         lookahead?.let { lookahead = null; return it }
         consumeWhitespace()
         val c = nextChar() ?: return Token.END_OF_FILE
-        return when(c) {
+
+        val tokenStartSpan: Span.SpanPosition = currentPositon.copy()
+
+        val token: Token = when(c) {
             '(' -> Token.LEFT_PAREN
             ')' -> Token.RIGHT_PAREN
             '[' -> Token.LEFT_BRACKET
@@ -79,6 +82,9 @@ class Lexer(input: String) {
                 else -> throw Exception("Unexpected $c")
             }
         }
+        token.span.start = tokenStartSpan
+        token.span.end = currentPositon
+        return token
     }
 
     private fun number(c: Char): Token {
@@ -105,7 +111,7 @@ class Lexer(input: String) {
         else {
             currentPositon.column += 1
         }
-        
+
         return nextChar
     }
 
