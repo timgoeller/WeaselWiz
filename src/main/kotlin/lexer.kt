@@ -1,11 +1,5 @@
-data class Span(var start: SpanPosition, var end: SpanPosition) {
-    data class SpanPosition (var line: Int, var column: Int)
-}
-
-val DUMMY_SPAN: Span = Span(Span.SpanPosition(-1, -1), Span.SpanPosition(-1,-1))
-
 sealed class Token() {
-    override fun toString(): String = javaClass.simpleName
+    override fun toString(): String = javaClass.simpleName + "Span: " + span
 
     val span: Span = DUMMY_SPAN
     
@@ -105,7 +99,7 @@ class Lexer(input: String) {
         val nextChar = chars.next()
 
         if (nextChar == '\n') {
-            currentPositon.column = 0
+            currentPositon.column = -1
             currentPositon.line += 1
         }
         else {
@@ -140,7 +134,7 @@ fun main() {
     val input = """
         if (\x1 -> equals 20 x1) 25 // Kommentar
         then true
-        else add 3 (multiply 4 5)
+        else add 3 (4 * 5)
     """.trimIndent()
     val lexer = Lexer(input)
     while(lexer.next().also(::println) !is Token.END_OF_FILE) {}

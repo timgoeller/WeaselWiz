@@ -1,7 +1,17 @@
+import com.sun.javafx.tk.DummyToolkit
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentHashMapOf
+import sun.reflect.generics.scope.DummyScope
+
+data class Span(var start: SpanPosition, var end: SpanPosition) {
+    data class SpanPosition (var line: Int, var column: Int)
+}
+
+val DUMMY_SPAN: Span = Span(Span.SpanPosition(-1, -1), Span.SpanPosition(-1,-1))
 
 sealed class Expr {
+    val span: Span = DUMMY_SPAN
+
     data class Number(val number: Int) : Expr()
     data class Boolean(val bool: kotlin.Boolean) : Expr()
     data class Var(val name: String) : Expr()
