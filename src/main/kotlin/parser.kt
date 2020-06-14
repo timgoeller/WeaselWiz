@@ -57,8 +57,7 @@ class Parser(val tokens: Lexer) {
                 val applicationExpression = Expr.Application(acc, expr)
                 applicationExpression.span.start = acc.span.start
                 applicationExpression.span.end = expr.span.end
-//                println(applicationExpression.span)
-                return applicationExpression
+                applicationExpression
             }
         }
     }
