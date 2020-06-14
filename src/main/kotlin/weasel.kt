@@ -10,7 +10,7 @@ data class Span(var start: SpanPosition, var end: SpanPosition) {
 val DUMMY_SPAN: Span = Span(Span.SpanPosition(-1, -1), Span.SpanPosition(-1,-1))
 
 sealed class Expr {
-    val span: Span = DUMMY_SPAN
+    val span: Span = DUMMY_SPAN.copy()
 
     data class Number(val number: Int) : Expr()
     data class Boolean(val bool: kotlin.Boolean) : Expr()
