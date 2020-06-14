@@ -1,7 +1,7 @@
 sealed class Token() {
     override fun toString(): String = javaClass.simpleName + "Span: " + span
 
-    val span: Span = DUMMY_SPAN
+    val span: Span = DUMMY_SPAN.copy()
     
     // Keywords
     object IF: Token()
@@ -76,8 +76,9 @@ class Lexer(input: String) {
                 else -> throw Exception("Unexpected $c")
             }
         }
+
         token.span.start = tokenStartSpan
-        token.span.end = currentPositon
+        token.span.end = currentPositon.copy()
         return token
     }
 
