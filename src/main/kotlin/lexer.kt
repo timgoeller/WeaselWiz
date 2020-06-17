@@ -4,22 +4,22 @@ sealed class Token() {
     val span: Span = DUMMY_SPAN.copy()
     
     // Keywords
-    object IF: Token()
-    object THEN: Token()
-    object ELSE: Token()
-    object LET: Token()
-    object REC: Token()
-    object IN: Token()
+    class IF: Token()
+    class THEN: Token()
+    class ELSE: Token()
+    class LET: Token()
+    class REC: Token()
+    class IN: Token()
 
     // Symbols
-    object LEFT_PAREN: Token()
-    object RIGHT_PAREN: Token()
-    object LEFT_BRACKET: Token()
-    object RIGHT_BRACKET: Token()
-    object LAMBDA: Token()
-    object COMMA: Token()
-    object RIGHT_ARROW: Token()
-    object EQUALS: Token()
+    class LEFT_PAREN: Token()
+    class RIGHT_PAREN: Token()
+    class LEFT_BRACKET: Token()
+    class RIGHT_BRACKET: Token()
+    class LAMBDA: Token()
+    class COMMA: Token()
+    class RIGHT_ARROW: Token()
+    class EQUALS: Token()
     data class OPERATOR(val operator: String): Token()
 
     // Idents
@@ -59,17 +59,17 @@ class Lexer(input: String) {
         val tokenStartSpan: Span.SpanPosition = currentPositon.copy()
 
         val token: Token = when(c) {
-            '(' -> Token.LEFT_PAREN
-            ')' -> Token.RIGHT_PAREN
-            '[' -> Token.LEFT_BRACKET
-            ']' -> Token.RIGHT_BRACKET
-            ',' -> Token.COMMA
+            '(' -> Token.LEFT_PAREN()
+            ')' -> Token.RIGHT_PAREN()
+            '[' -> Token.LEFT_BRACKET()
+            ']' -> Token.RIGHT_BRACKET()
+            ',' -> Token.COMMA()
             '+' -> Token.OPERATOR("+")
             '*' -> Token.OPERATOR("*")
-            '\\' -> Token.LAMBDA
+            '\\' -> Token.LAMBDA()
             '/' -> if(nextChar()=='/') comment() else throw Exception("Expected seccond '/")
-            '-' -> if(nextChar() == '>') Token.RIGHT_ARROW else Token.OPERATOR("-")
-            '=' -> if(nextChar() == '=') Token.OPERATOR("==") else Token.EQUALS
+            '-' -> if(nextChar() == '>') Token.RIGHT_ARROW() else Token.OPERATOR("-")
+            '=' -> if(nextChar() == '=') Token.OPERATOR("==") else Token.EQUALS()
             else -> when {
                 c.isJavaIdentifierStart() -> ident(c)
                 c.isDigit() -> number(c)
@@ -114,12 +114,12 @@ class Lexer(input: String) {
         var res = c.toString()
         while (chars.peek()?.isJavaIdentifierPart() == true) res += nextChar()
         return when(res) {
-            "if" -> Token.IF
-            "then" -> Token.THEN
-            "else" -> Token.ELSE
-            "let" -> Token.LET
-            "rec" -> Token.REC
-            "in" -> Token.IN
+            "if" -> Token.IF()
+            "then" -> Token.THEN()
+            "else" -> Token.ELSE()
+            "let" -> Token.LET()
+            "rec" -> Token.REC()
+            "in" -> Token.IN()
             "true" -> Token.BOOLEAN(true)
             "false" -> Token.BOOLEAN(false)
             else -> Token.IDENT(res)
