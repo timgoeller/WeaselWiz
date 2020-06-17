@@ -14,7 +14,10 @@ class Parser(val tokens: Lexer) {
                     if (leftBP < minBindingPower) break@loop
                     expectNext<Token.OPERATOR>("operator")
                     val rightHandSide = parseOperatorExpression(rightBP)
+                    val leftHandSidePrevSpan = leftHandSide.span.copy()
                     leftHandSide =  Expr.Application(Expr.Application(fn, leftHandSide), rightHandSide)
+                    leftHandSide.span.start = leftHandSidePrevSpan.start
+                    leftHandSide.span.end = rightHandSide.span.end
                 }
                 else -> break@loop
             }
@@ -49,11 +52,9 @@ class Parser(val tokens: Lexer) {
             atoms += atom
         }
 
-//        println(atoms)
         return when {
             atoms.isEmpty() -> throw Exception("Unexpected ${tokens.peek()} expected expression")
             else -> atoms.drop(1).fold(atoms[0]) { acc, expr ->
-                println("ACC: " + acc + " EXPR: " + expr)
                 val applicationExpression = Expr.Application(acc, expr)
                 applicationExpression.span.start = acc.span.start
                 applicationExpression.span.end = expr.span.end
@@ -93,6 +94,7 @@ class Parser(val tokens: Lexer) {
 
     private fun letExpression(): Expr {
         val letToken = expectNext<Token.LET>("let")
+
         var isRecursive = false
         if (tokens.peek() is Token.REC) {
             expectNext<Token.REC>("rec")
@@ -134,25 +136,27 @@ class Parser(val tokens: Lexer) {
     }
 
     private fun parenthesized(): Expr {
-        expectNext<Token.LEFT_PAREN>("opening paren")
+        val leftParenToken = expectNext<Token.LEFT_PAREN>("opening paren")
         val expr = parseExpression()
-        expectNext<Token.RIGHT_PAREN>("closing paren")
+        val rightParenToken = expectNext<Token.RIGHT_PAREN>("closing paren")
+        expr.span.start = leftParenToken.span.start
+        expr.span.end = rightParenToken.span.end
         return expr
     }
 
     private fun ident(): Expr.Var {
         val identToken = expectNext<Token.IDENT>("ident")
         val identExpr = Expr.Var(identToken.ident)
-        identExpr.span.start = identExpr.span.start
-        identExpr.span.end = identExpr.span.end
+        identExpr.span.start = identToken.span.start
+        identExpr.span.end = identToken.span.end
         return identExpr
     }
 
     private fun boolean(): Expr.Boolean {
         val booleanToken = expectNext<Token.BOOLEAN>("boolean")
         val booleanExpr = Expr.Boolean(booleanToken.boolean)
-        booleanExpr.span.start = booleanExpr.span.start
-        booleanExpr.span.end = booleanExpr.span.end
+        booleanExpr.span.start = booleanToken.span.start
+        booleanExpr.span.end = booleanToken.span.end
         return booleanExpr
     }
 
@@ -175,12 +179,6 @@ class Parser(val tokens: Lexer) {
 }
 
 fun main() {
-//    val input = """
-//        let x =
-//          let y = 10 in
-//          y + 11 in
-//        x + x
-//    """.trimIndent()
 
 //    val lexer = Lexer(input)
 //    val parser = Parser(lexer)
@@ -194,6 +192,13 @@ fun main() {
 
     fun parseExpr(s: String) = Parser(Lexer(s)).parseExpression()
 
+    val input = parseExpr("""
+        let x =
+            let y = 10 in
+            y + 11 in
+        x + x
+    """.trimIndent())
+
 //    val z = parseExpr("""\f -> (\x -> f \v -> x x v) (\x -> f \v -> x x v)""")
 //    val faculty = parseExpr(
 //        """
@@ -204,11 +209,11 @@ fun main() {
 //    """.trimIndent()
 //    )
 
-    val input = parseExpr("""
-        if (\x1 -> equals 20 x1) 25 // Kommentar
-        then true
-        else add 3 (4 * 5)
-    """.trimIndent())
+//    val input = parseExpr("""
+//        if (\x1 -> equals 20 x1) 25 // Kommentar
+//        then true
+//        else add 3 (4 * 5)
+//    """.trimIndent())
 
     println(eval(initialEnv, input))
 //    println(eval(initialEnv, Expr.Application(Expr.Application(z, faculty), Expr.Number(5))))
