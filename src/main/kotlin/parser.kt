@@ -15,7 +15,12 @@ class Parser(val tokens: Lexer) {
                     expectNext<Token.OPERATOR>("operator")
                     val rightHandSide = parseOperatorExpression(rightBP)
                     val leftHandSidePrevSpan = leftHandSide.span.copy()
-                    leftHandSide =  Expr.Application(Expr.Application(fn, leftHandSide), rightHandSide)
+
+                    val innerApplication = Expr.Application(fn, leftHandSide)
+                    innerApplication.span.start = leftHandSide.span.start
+                    innerApplication.span.end = fn.span.end
+
+                    leftHandSide =  Expr.Application(innerApplication, rightHandSide)
                     leftHandSide.span.start = leftHandSidePrevSpan.start
                     leftHandSide.span.end = rightHandSide.span.end
                 }
