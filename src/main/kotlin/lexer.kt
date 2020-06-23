@@ -100,7 +100,7 @@ class Lexer(input: String) {
         val nextChar = chars.next()
 
         if (nextChar == '\n') {
-            currentPositon.column = -1
+            currentPositon.column = -1 //mit copy?
             currentPositon.line += 1
         }
         else {

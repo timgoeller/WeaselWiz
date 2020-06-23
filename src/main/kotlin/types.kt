@@ -188,8 +188,14 @@ fun generalize(ctx: Context, ty: Monotype): Polytype {
     return Polytype(unknownsWithVars.map { it.second }, applySolution(genSolution, ty))
 }
 
+val dataRecorder = TypeCheckingDataRecorder()
+
 // Type inference
 fun infer(ctx: Context, expr: Expr): Monotype {
+
+    //Start of new infer step
+    dataRecorder.record(ctx, expr)
+
     return when (expr) {
         is Expr.Number -> Monotype.Number
         is Expr.Boolean -> Monotype.Boolean
@@ -279,29 +285,30 @@ fun main() {
         tail listTwo
         """.trimIndent()
     testInfer(listExpr)
+    assert(true)
 
-    val mapping = """
-        let rec map = \f -> \xs -> 
-          if isEmpty xs 
-          then nil 
-          else cons (f (head xs)) (map f (tail xs)) in
-        map (\x -> x + 10) [1, 2, 3]
-    """.trimIndent()
-    testInfer(mapping)
+//    val mapping = """
+//        let rec map = \f -> \xs ->
+//          if isEmpty xs
+//          then nil
+//          else cons (f (head xs)) (map f (tail xs)) in
+//        map (\x -> x + 10) [1, 2, 3]
+//    """.trimIndent()
+//    testInfer(mapping)
 
     // filter : forall a. (a -> Boolean) -> [a] -> [a]
 
-    val filtering = """
-        let not = \b -> if b then false else true in
-        let rec filter = \f -> \xs -> 
-            if isEmpty xs 
-            then nil 
-            else if f (head xs)
-                then cons (head xs) (filter f (tail xs)) 
-                else filter f (tail xs) in
-        filter (\x -> not (isEmpty x)) [[], [10], [], [20, 30, 2 + 5]]
-    """.trimIndent()
-    testInfer(filtering)
+//    val filtering = """
+//        let not = \b -> if b then false else true in
+//        let rec filter = \f -> \xs ->
+//            if isEmpty xs
+//            then nil
+//            else if f (head xs)
+//                then cons (head xs) (filter f (tail xs))
+//                else filter f (tail xs) in
+//        filter (\x -> not (isEmpty x)) [[], [10], [], [20, 30, 2 + 5]]
+//    """.trimIndent()
+//    testInfer(filtering)
     // printSolution()
 
 }
