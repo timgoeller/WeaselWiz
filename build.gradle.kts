@@ -5,6 +5,8 @@ plugins {
 group = "puc"
 version = "1.0-SNAPSHOT"
 
+val ktor_version = "1.3.2"
+
 repositories {
     mavenCentral()
     jcenter()
@@ -13,6 +15,8 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     compile("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3.2")
+    compile("io.ktor:ktor-server-core:$ktor_version")
+    compile("io.ktor:ktor-server-netty:$ktor_version")
 }
 
 tasks {
