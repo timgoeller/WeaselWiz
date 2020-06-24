@@ -17,6 +17,7 @@ dependencies {
     compile("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3.2")
     compile("io.ktor:ktor-server-core:$ktor_version")
     compile("io.ktor:ktor-server-netty:$ktor_version")
+    compile("com.google.code.gson:gson:2.8.6")
 }
 
 tasks {

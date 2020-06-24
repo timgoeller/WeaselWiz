@@ -1,7 +1,6 @@
+import com.google.gson.Gson
 import io.ktor.application.*
-import io.ktor.http.*
 import io.ktor.request.receive
-import io.ktor.request.receiveParameters
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -12,8 +11,12 @@ fun main() {
         routing {
             post("compile") {
                 val code = call.receive<String>()
-                println(code)
-                call.respond(code)
+
+                val e = Parser(Lexer(code)).parseExpression()
+                val typechecker = Typechecker()
+                val ty = typechecker.infer(typechecker.initialContext, e)
+
+                call.respond(Gson().toJson(typechecker.dataRecorder.getRecords()))
             }
         }
     }.start(wait = true)

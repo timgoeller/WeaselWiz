@@ -6,5 +6,9 @@ class TypeCheckingDataRecorder() {
         recordList.add(Record(ctx, expr, currentSeq++))
     }
 
+    fun getRecords(): ArrayList<Record> {
+        return recordList
+    }
+
     data class Record(val ctx : Context, val expr : Expr, val seq : Int)
 }
