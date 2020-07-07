@@ -5,22 +5,22 @@ typealias Solution = HashMap<Int, Typechecker.Monotype>
 typealias Context = PersistentMap<String, Typechecker.Polytype>
 
 class Typechecker() {
-    sealed class Monotype {
+    sealed class Monotype(val typeName : String) {
         override fun toString(): String = javaClass.simpleName
 
-        object Number : Monotype()
-        object Boolean : Monotype()
-        data class Function(val argument: Monotype, val result: Monotype) : Monotype()
-        data class Var(val name: String) : Monotype()
-        data class Unknown(val unknown: Int) : Monotype()
-        data class LinkedList(val ty: Monotype) : Monotype()
+        object Number : Monotype("Number")
+        object Boolean : Monotype("Boolean")
+        data class Function(val argument: Monotype, val result: Monotype) : Monotype("Function")
+        data class Var(val varName: String) : Monotype("Var")
+        data class Unknown(val unknown: Int) : Monotype("Unknown")
+        data class LinkedList(val ty: Monotype) : Monotype("List")
 
         fun pretty(): String = prettyInner(false)
         private fun prettyInner(parens: kotlin.Boolean): String {
             return when (this) {
                 Number -> "Number"
                 Boolean -> "Boolean"
-                is Var -> name
+                is Var -> varName
                 is Unknown -> "u$unknown"
                 is LinkedList -> "[${ty.pretty()}]"
                 is Function -> {
@@ -43,7 +43,7 @@ class Typechecker() {
 
     fun substitute(type: Monotype, v: String, replacement: Monotype): Monotype = when (type) {
         Monotype.Number, Monotype.Boolean, is Monotype.Unknown -> type
-        is Monotype.Var -> if (type.name == v) replacement else type
+        is Monotype.Var -> if (type.varName == v) replacement else type
         is Monotype.Function -> Monotype.Function(
                 substitute(type.argument, v, replacement),
                 substitute(type.result, v, replacement)
@@ -195,9 +195,9 @@ class Typechecker() {
     fun infer(ctx: Context, expr: Expr): Monotype {
 
         //Start of new infer step
-        dataRecorder.record(ctx, expr)
+        val sequenceNumber = dataRecorder.getNextSequenceNumber()
 
-        return when (expr) {
+        val type =  when (expr) {
             is Expr.Number -> Monotype.Number
             is Expr.Boolean -> Monotype.Boolean
             is Expr.Var -> ctx[expr.name]?.let(::instantiate) ?: throw Exception("Unknown variable ${expr.name}")
@@ -247,6 +247,9 @@ class Typechecker() {
             }
             is Expr.Closure -> TODO()
         }
+
+        dataRecorder.record(ctx, expr, type, sequenceNumber)
+        return type
     }
 }
 

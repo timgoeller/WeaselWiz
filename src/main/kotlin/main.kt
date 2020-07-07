@@ -7,15 +7,17 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
 fun main() {
-    embeddedServer(Netty, 8080) {
+    embeddedServer(Netty, 37105) {
         routing {
             post("compile") {
                 val code = call.receive<String>()
+                println(code)
 
                 val e = Parser(Lexer(code)).parseExpression()
                 val typechecker = Typechecker()
                 val ty = typechecker.infer(typechecker.initialContext, e)
 
+                val records = typechecker.dataRecorder.getRecords()
                 call.respond(Gson().toJson(typechecker.dataRecorder.getRecords()))
             }
         }
