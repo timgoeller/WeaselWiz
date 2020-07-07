@@ -248,7 +248,7 @@ class Typechecker() {
             is Expr.Closure -> TODO()
         }
 
-        dataRecorder.record(ctx, expr, type, sequenceNumber)
+        dataRecorder.record(ctx, expr,  applySolution(solution, type), sequenceNumber)
         return type
     }
 }
