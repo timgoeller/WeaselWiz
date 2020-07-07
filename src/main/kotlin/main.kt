@@ -5,6 +5,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import java.lang.Exception
 
 fun main() {
     embeddedServer(Netty, 37105) {
@@ -13,12 +14,20 @@ fun main() {
                 val code = call.receive<String>()
                 println(code)
 
-                val e = Parser(Lexer(code)).parseExpression()
-                val typechecker = Typechecker()
-                val ty = typechecker.infer(typechecker.initialContext, e)
+                try {
+                    val e = Parser(Lexer(code)).parseExpression()
+                    val typechecker = Typechecker()
+                    val ty = typechecker.infer(typechecker.initialContext, e)
 
-                val records = typechecker.dataRecorder.getRecords()
-                call.respond(Gson().toJson(typechecker.dataRecorder.getRecords()))
+                    val records = typechecker.dataRecorder.getRecords()
+
+                    call.respond(Gson().toJson(typechecker.dataRecorder.getRecords()))
+                }
+                catch (e : Exception) {
+                    call.respond("{\"error\": \"${e.message}\"}")
+                }
+
+
             }
         }
     }.start(wait = true)
