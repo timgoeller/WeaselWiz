@@ -1,45 +1,58 @@
 import kotlinx.collections.immutable.*
 import kotlin.Exception
 
-typealias Solution = HashMap<Int, Typechecker.Monotype>
+typealias Solution = HashMap<Int, Monotype>
 typealias Context = PersistentMap<String, Typechecker.Polytype>
 
-class Typechecker() {
-    sealed class Monotype(val typeName : String) {
-        override fun toString(): String = javaClass.simpleName
+fun applySolution(solution: Solution, type: Monotype): Monotype = when (type) {
+    Monotype.Number -> Monotype.Number
+    Monotype.Boolean -> Monotype.Boolean
+    is Monotype.Var -> type
+    is Monotype.Unknown ->
+        solution[type.unknown]?.let { applySolution(solution, it) } ?: type
+    is Monotype.Function -> Monotype.Function(
+            applySolution(solution, type.argument),
+            applySolution(solution, type.result)
+    )
+    is Monotype.LinkedList -> Monotype.LinkedList(applySolution(solution, type.ty))
+}
 
-        object Number : Monotype("Number")
-        object Boolean : Monotype("Boolean")
-        data class Function(val argument: Monotype, val result: Monotype) : Monotype("Function")
-        data class Var(val varName: String) : Monotype("Var")
-        data class Unknown(val unknown: Int) : Monotype("Unknown")
-        data class LinkedList(val ty: Monotype) : Monotype("List")
+sealed class Monotype(val typeName : String) {
+    override fun toString(): String = javaClass.simpleName
 
-        fun pretty(): String = prettyInner(false)
-        private fun prettyInner(parens: kotlin.Boolean): String {
-            return when (this) {
-                Number -> "Number"
-                Boolean -> "Boolean"
-                is Var -> varName
-                is Unknown -> "u$unknown"
-                is LinkedList -> "[${ty.pretty()}]"
-                is Function -> {
-                    val inner = "${argument.prettyInner(true)} -> ${result.pretty()}"
-                    if (parens) "($inner)" else inner
-                }
-            }
-        }
+    object Number : Monotype("Number")
+    object Boolean : Monotype("Boolean")
+    data class Function(val argument: Monotype, val result: Monotype) : Monotype("Function")
+    data class Var(val varName: String) : Monotype("Var")
+    data class Unknown(val unknown: Int) : Monotype("Unknown")
+    data class LinkedList(val ty: Monotype) : Monotype("List")
 
-        fun unknowns(): PersistentSet<Int> {
-            return when (this) {
-                Number, Boolean, is Var -> persistentSetOf()
-                is Function -> argument.unknowns().addAll(result.unknowns())
-                is Unknown -> persistentSetOf(unknown)
-                is LinkedList -> ty.unknowns()
+    fun pretty(): String = prettyInner(false)
+    private fun prettyInner(parens: kotlin.Boolean): String {
+        return when (this) {
+            Number -> "Number"
+            Boolean -> "Boolean"
+            is Var -> varName
+            is Unknown -> "u$unknown"
+            is LinkedList -> "[${ty.pretty()}]"
+            is Function -> {
+                val inner = "${argument.prettyInner(true)} -> ${result.pretty()}"
+                if (parens) "($inner)" else inner
             }
         }
     }
 
+    fun unknowns(): PersistentSet<Int> {
+        return when (this) {
+            Number, Boolean, is Var -> persistentSetOf()
+            is Function -> argument.unknowns().addAll(result.unknowns())
+            is Unknown -> persistentSetOf(unknown)
+            is LinkedList -> ty.unknowns()
+        }
+    }
+}
+
+class Typechecker() {
 
     fun substitute(type: Monotype, v: String, replacement: Monotype): Monotype = when (type) {
         Monotype.Number, Monotype.Boolean, is Monotype.Unknown -> type
@@ -68,19 +81,6 @@ class Typechecker() {
         solution.forEach { (u, t) ->
             println("u$u |-> ${t.pretty()}")
         }
-    }
-
-    fun applySolution(solution: Solution, type: Monotype): Monotype = when (type) {
-        Monotype.Number -> Monotype.Number
-        Monotype.Boolean -> Monotype.Boolean
-        is Monotype.Var -> type
-        is Monotype.Unknown ->
-            solution[type.unknown]?.let { applySolution(solution, it) } ?: type
-        is Monotype.Function -> Monotype.Function(
-                applySolution(solution, type.argument),
-                applySolution(solution, type.result)
-        )
-        is Monotype.LinkedList -> Monotype.LinkedList(applySolution(solution, type.ty))
     }
 
     fun unify(t1: Monotype, t2: Monotype) {

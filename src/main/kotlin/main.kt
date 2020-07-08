@@ -12,15 +12,13 @@ fun main() {
         routing {
             post("compile") {
                 val code = call.receive<String>()
-                println(code)
 
                 try {
                     val e = Parser(Lexer(code)).parseExpression()
                     val typechecker = Typechecker()
-                    val ty = typechecker.infer(typechecker.initialContext, e)
+                    typechecker.infer(typechecker.initialContext, e)
 
-                    val records = typechecker.dataRecorder.getRecords()
-
+                    typechecker.dataRecorder.applySolutionToRecords(typechecker.solution)
                     call.respond(Gson().toJson(typechecker.dataRecorder.getRecords()))
                 }
                 catch (e : Exception) {
