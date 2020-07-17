@@ -19,7 +19,13 @@ fun main() {
                     typechecker.infer(typechecker.initialContext, e)
 
                     typechecker.dataRecorder.applySolutionToRecords(typechecker.solution)
-                    call.respond(Gson().toJson(typechecker.dataRecorder.getRecords()))
+                    val result = eval(initialEnv, e)
+                    println(result)
+//                    val json = Gson().toJson(typechecker.dataRecorder.getRecords())
+
+                    val jsonMap = mapOf("typecheckData" to typechecker.dataRecorder.getRecords(), "result" to result)
+                    println(Gson().toJson(jsonMap))
+                    call.respond(Gson().toJson(jsonMap))
                 }
                 catch (e : Exception) {
                     call.respond("{\"error\": \"${e.message}\"}")
